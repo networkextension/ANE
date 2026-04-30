@@ -24,8 +24,8 @@ static NSData *buildWeightBlob(int ch) {
 
 static NSString *genMIL(int ch, int sp) {
     NSMutableString *m = [NSMutableString string];
-    [m appendString:@"program(1.3)\n[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, {\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, {\"coremltools-version\", \"9.0\"}})]\n{\n"];
-    [m appendFormat:@"    func main<ios18>(tensor<fp32, [1, %d, 1, %d]> x) {\n", ch, sp];
+    [m appendString:@"program(1.0)\n[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, {\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, {\"coremltools-version\", \"9.0\"}})]\n{\n"];
+    [m appendFormat:@"    func main<ios17>(tensor<fp32, [1, %d, 1, %d]> x) {\n", ch, sp];
     [m appendString:
         @"        string c_pad_type = const()[name = string(\"c_pad_type\"), val = string(\"valid\")];\n"
         @"        tensor<int32, [2]> c_strides = const()[name = string(\"c_strides\"), val = tensor<int32, [2]>([1, 1])];\n"

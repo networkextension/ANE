@@ -59,38 +59,38 @@ int main() {
         printf("=== Fused W1b+W3b backward (slice+conv+add) ===\n");
 
         NSString *mil = [NSString stringWithFormat:
-            @"program(1.3)\n[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
+            @"program(1.0)\n[buildInfo = dict<tensor<string, []>, tensor<string, []>>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
             "{\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, "
             "{\"coremltools-version\", \"9.0\"}})]\n{\n"
-            "    func main<ios18>(tensor<fp32, [1, %d, 1, %d]> x) {\n"  // [1, HIDDEN*2, 1, SEQ]
-            "        string d1 = const()[name = string(\"d1\"), val = string(\"fp16\")];\n"
-            "        tensor<fp16, [1, %d, 1, %d]> x16 = cast(dtype = d1, x = x)[name = string(\"cx\")];\n"
+            "    func main<ios16>(tensor<fp32, [1, %d, 1, %d]> x) {\n"  // [1, HIDDEN*2, 1, SEQ]
+            "        tensor<string, []> d1 = const()[name = tensor<string, []>(\"d1\"), val = tensor<string, []>(\"fp16\")];\n"
+            "        tensor<fp16, [1, %d, 1, %d]> x16 = cast(dtype = d1, x = x)[name = tensor<string, []>(\"cx\")];\n"
             // Slice: dh1 = x16[:, 0:HIDDEN, :, :], dh3 = x16[:, HIDDEN:2*HIDDEN, :, :]
-            "        tensor<int32, [4]> b1 = const()[name = string(\"b1\"), val = tensor<int32, [4]>([0, 0, 0, 0])];\n"
-            "        tensor<int32, [4]> s1 = const()[name = string(\"s1\"), val = tensor<int32, [4]>([1, %d, 1, %d])];\n"
-            "        tensor<fp16, [1, %d, 1, %d]> dh1 = slice_by_size(x = x16, begin = b1, size = s1)[name = string(\"sl1\")];\n"
-            "        tensor<int32, [4]> b3 = const()[name = string(\"b3\"), val = tensor<int32, [4]>([0, %d, 0, 0])];\n"
-            "        tensor<int32, [4]> s3 = const()[name = string(\"s3\"), val = tensor<int32, [4]>([1, %d, 1, %d])];\n"
-            "        tensor<fp16, [1, %d, 1, %d]> dh3 = slice_by_size(x = x16, begin = b3, size = s3)[name = string(\"sl3\")];\n"
+            "        tensor<int32, [4]> b1 = const()[name = tensor<string, []>(\"b1\"), val = tensor<int32, [4]>([0, 0, 0, 0])];\n"
+            "        tensor<int32, [4]> s1 = const()[name = tensor<string, []>(\"s1\"), val = tensor<int32, [4]>([1, %d, 1, %d])];\n"
+            "        tensor<fp16, [1, %d, 1, %d]> dh1 = slice_by_size(x = x16, begin = b1, size = s1)[name = tensor<string, []>(\"sl1\")];\n"
+            "        tensor<int32, [4]> b3 = const()[name = tensor<string, []>(\"b3\"), val = tensor<int32, [4]>([0, %d, 0, 0])];\n"
+            "        tensor<int32, [4]> s3 = const()[name = tensor<string, []>(\"s3\"), val = tensor<int32, [4]>([1, %d, 1, %d])];\n"
+            "        tensor<fp16, [1, %d, 1, %d]> dh3 = slice_by_size(x = x16, begin = b3, size = s3)[name = tensor<string, []>(\"sl3\")];\n"
             // Conv: W1^T @ dh1, W3^T @ dh3
-            "        string pt = const()[name = string(\"pt\"), val = string(\"valid\")];\n"
-            "        tensor<int32, [2]> st = const()[name = string(\"st\"), val = tensor<int32, [2]>([1, 1])];\n"
-            "        tensor<int32, [4]> pd = const()[name = string(\"pd\"), val = tensor<int32, [4]>([0, 0, 0, 0])];\n"
-            "        tensor<int32, [2]> dl = const()[name = string(\"dl\"), val = tensor<int32, [2]>([1, 1])];\n"
-            "        int32 gr = const()[name = string(\"gr\"), val = int32(1)];\n"
+            "        tensor<string, []> pt = const()[name = tensor<string, []>(\"pt\"), val = tensor<string, []>(\"valid\")];\n"
+            "        tensor<int32, [2]> st = const()[name = tensor<string, []>(\"st\"), val = tensor<int32, [2]>([1, 1])];\n"
+            "        tensor<int32, [4]> pd = const()[name = tensor<string, []>(\"pd\"), val = tensor<int32, [4]>([0, 0, 0, 0])];\n"
+            "        tensor<int32, [2]> dl = const()[name = tensor<string, []>(\"dl\"), val = tensor<int32, [2]>([1, 1])];\n"
+            "        tensor<int32, []> gr = const()[name = tensor<string, []>(\"gr\"), val = tensor<int32, []>(1)];\n"
             // W1^T: [DIM, HIDDEN, 1, 1]  (transposed from [HIDDEN, DIM])
-            "        tensor<fp16, [%d, %d, 1, 1]> W1t = const()[name = string(\"W1t\"), "
-            "val = tensor<fp16, [%d, %d, 1, 1]>(BLOBFILE(path = string(\"@model_path/weights/w1t.bin\"), offset = uint64(64)))];\n"
-            "        tensor<fp16, [%d, %d, 1, 1]> W3t = const()[name = string(\"W3t\"), "
-            "val = tensor<fp16, [%d, %d, 1, 1]>(BLOBFILE(path = string(\"@model_path/weights/w3t.bin\"), offset = uint64(64)))];\n"
+            "        tensor<fp16, [%d, %d, 1, 1]> W1t = const()[name = tensor<string, []>(\"W1t\"), "
+            "val = tensor<fp16, [%d, %d, 1, 1]>(BLOBFILE(path = tensor<string, []>(\"@model_path/weights/w1t.bin\"), offset = tensor<uint64, []>(64)))];\n"
+            "        tensor<fp16, [%d, %d, 1, 1]> W3t = const()[name = tensor<string, []>(\"W3t\"), "
+            "val = tensor<fp16, [%d, %d, 1, 1]>(BLOBFILE(path = tensor<string, []>(\"@model_path/weights/w3t.bin\"), offset = tensor<uint64, []>(64)))];\n"
             "        tensor<fp16, [1, %d, 1, %d]> dx1 = conv(dilations = dl, groups = gr, pad = pd, "
-            "pad_type = pt, strides = st, weight = W1t, x = dh1)[name = string(\"cv1\")];\n"
+            "pad_type = pt, strides = st, weight = W1t, x = dh1)[name = tensor<string, []>(\"cv1\")];\n"
             "        tensor<fp16, [1, %d, 1, %d]> dx3 = conv(dilations = dl, groups = gr, pad = pd, "
-            "pad_type = pt, strides = st, weight = W3t, x = dh3)[name = string(\"cv3\")];\n"
+            "pad_type = pt, strides = st, weight = W3t, x = dh3)[name = tensor<string, []>(\"cv3\")];\n"
             // Add
-            "        tensor<fp16, [1, %d, 1, %d]> sum = add(x = dx1, y = dx3)[name = string(\"ad\")];\n"
-            "        string d2 = const()[name = string(\"d2\"), val = string(\"fp32\")];\n"
-            "        tensor<fp32, [1, %d, 1, %d]> y = cast(dtype = d2, x = sum)[name = string(\"co\")];\n"
+            "        tensor<fp16, [1, %d, 1, %d]> sum = add(x = dx1, y = dx3)[name = tensor<string, []>(\"ad\")];\n"
+            "        tensor<string, []> d2 = const()[name = tensor<string, []>(\"d2\"), val = tensor<string, []>(\"fp32\")];\n"
+            "        tensor<fp32, [1, %d, 1, %d]> y = cast(dtype = d2, x = sum)[name = tensor<string, []>(\"co\")];\n"
             "    } -> (y);\n}\n",
             HIDDEN*2, SEQ, HIDDEN*2, SEQ,
             HIDDEN, SEQ, HIDDEN, SEQ,  // slice1

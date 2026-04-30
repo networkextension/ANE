@@ -15,26 +15,26 @@
 // MIL: fp32 in → cast fp16 → conv → cast fp32 out (matches inmem_peak.m pattern)
 static NSString *gen_conv_mil(int ic, int oc, int sp) {
     NSMutableString *m = [NSMutableString string];
-    [m appendString:@"program(1.3)\n"
-        "[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
+    [m appendString:@"program(1.0)\n"
+        "[buildInfo = dict<tensor<string, []>, tensor<string, []>>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
         "{\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, "
         "{\"coremltools-version\", \"9.0\"}})]\n{\n"];
-    [m appendFormat:@"    func main<ios18>(tensor<fp32, [1, %d, 1, %d]> x) {\n", ic, sp];
+    [m appendFormat:@"    func main<ios16>(tensor<fp32, [1, %d, 1, %d]> x) {\n", ic, sp];
     [m appendString:
-        @"        string pt = const()[name = string(\"pt\"), val = string(\"valid\")];\n"
-        "        tensor<int32, [2]> st = const()[name = string(\"st\"), val = tensor<int32, [2]>([1, 1])];\n"
-        "        tensor<int32, [4]> pd = const()[name = string(\"pd\"), val = tensor<int32, [4]>([0, 0, 0, 0])];\n"
-        "        tensor<int32, [2]> dl = const()[name = string(\"dl\"), val = tensor<int32, [2]>([1, 1])];\n"
-        "        int32 gr = const()[name = string(\"gr\"), val = int32(1)];\n"
-        "        string to16 = const()[name = string(\"to16\"), val = string(\"fp16\")];\n"];
-    [m appendFormat:@"        tensor<fp16, [1, %d, 1, %d]> xh = cast(dtype = to16, x = x)[name = string(\"cast_in\")];\n", ic, sp];
-    [m appendFormat:@"        tensor<fp16, [%d, %d, 1, 1]> W = const()[name = string(\"W\"), "
-        "val = tensor<fp16, [%d, %d, 1, 1]>(BLOBFILE(path = string(\"@model_path/weights/w.bin\"), offset = uint64(64)))];\n",
+        @"        tensor<string, []> pt = const()[name = tensor<string, []>(\"pt\"), val = tensor<string, []>(\"valid\")];\n"
+        "        tensor<int32, [2]> st = const()[name = tensor<string, []>(\"st\"), val = tensor<int32, [2]>([1, 1])];\n"
+        "        tensor<int32, [4]> pd = const()[name = tensor<string, []>(\"pd\"), val = tensor<int32, [4]>([0, 0, 0, 0])];\n"
+        "        tensor<int32, [2]> dl = const()[name = tensor<string, []>(\"dl\"), val = tensor<int32, [2]>([1, 1])];\n"
+        "        tensor<int32, []> gr = const()[name = tensor<string, []>(\"gr\"), val = tensor<int32, []>(1)];\n"
+        "        tensor<string, []> to16 = const()[name = tensor<string, []>(\"to16\"), val = tensor<string, []>(\"fp16\")];\n"];
+    [m appendFormat:@"        tensor<fp16, [1, %d, 1, %d]> xh = cast(dtype = to16, x = x)[name = tensor<string, []>(\"cast_in\")];\n", ic, sp];
+    [m appendFormat:@"        tensor<fp16, [%d, %d, 1, 1]> W = const()[name = tensor<string, []>(\"W\"), "
+        "val = tensor<fp16, [%d, %d, 1, 1]>(BLOBFILE(path = tensor<string, []>(\"@model_path/weights/w.bin\"), offset = tensor<uint64, []>(64)))];\n",
         oc, ic, oc, ic];
     [m appendFormat:@"        tensor<fp16, [1, %d, 1, %d]> yh = conv(dilations = dl, groups = gr, pad = pd, pad_type = pt, strides = st, weight = W, x = xh)"
-        "[name = string(\"conv\")];\n", oc, sp];
-    [m appendString:@"        string to32 = const()[name = string(\"to32\"), val = string(\"fp32\")];\n"];
-    [m appendFormat:@"        tensor<fp32, [1, %d, 1, %d]> y = cast(dtype = to32, x = yh)[name = string(\"cast_out\")];\n", oc, sp];
+        "[name = tensor<string, []>(\"conv\")];\n", oc, sp];
+    [m appendString:@"        tensor<string, []> to32 = const()[name = tensor<string, []>(\"to32\"), val = tensor<string, []>(\"fp32\")];\n"];
+    [m appendFormat:@"        tensor<fp32, [1, %d, 1, %d]> y = cast(dtype = to32, x = yh)[name = tensor<string, []>(\"cast_out\")];\n", oc, sp];
     [m appendString:@"    } -> (y);\n}\n"];
     return m;
 }
@@ -286,21 +286,21 @@ int main(int argc, char **argv) {
         {
         int C5 = IC;
         NSMutableString *m5 = [NSMutableString string];
-        [m5 appendString:@"program(1.3)\n"
-            "[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
+        [m5 appendString:@"program(1.0)\n"
+            "[buildInfo = dict<tensor<string, []>, tensor<string, []>>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
             "{\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, "
             "{\"coremltools-version\", \"9.0\"}})]\n{\n"];
-        [m5 appendFormat:@"    func main<ios18>(tensor<fp32, [1, %d, 1, %d]> x) {\n", C5*2, SP];
-        [m5 appendString:@"        string to16 = const()[name = string(\"to16\"), val = string(\"fp16\")];\n"];
-        [m5 appendFormat:@"        tensor<fp16, [1, %d, 1, %d]> xh = cast(dtype = to16, x = x)[name = string(\"cin\")];\n", C5*2, SP];
-        [m5 appendFormat:@"        tensor<int32, [4]> b0 = const()[name = string(\"b0\"), val = tensor<int32, [4]>([0,0,0,0])];\n"];
-        [m5 appendFormat:@"        tensor<int32, [4]> s0 = const()[name = string(\"s0\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", C5, SP];
-        [m5 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> data = slice_by_size(x=xh,begin=b0,size=s0)[name=string(\"data\")];\n", C5, SP];
-        [m5 appendFormat:@"        tensor<int32, [4]> b1 = const()[name = string(\"b1\"), val = tensor<int32, [4]>([0,%d,0,0])];\n", C5];
-        [m5 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> wt = slice_by_size(x=xh,begin=b1,size=s0)[name=string(\"wt\")];\n", C5, SP];
-        [m5 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> yh = mul(x=data,y=wt)[name=string(\"mul\")];\n", C5, SP];
-        [m5 appendString:@"        string to32 = const()[name = string(\"to32\"), val = string(\"fp32\")];\n"];
-        [m5 appendFormat:@"        tensor<fp32, [1,%d,1,%d]> y = cast(dtype = to32, x = yh)[name = string(\"cout\")];\n", C5, SP];
+        [m5 appendFormat:@"    func main<ios16>(tensor<fp32, [1, %d, 1, %d]> x) {\n", C5*2, SP];
+        [m5 appendString:@"        tensor<string, []> to16 = const()[name = tensor<string, []>(\"to16\"), val = tensor<string, []>(\"fp16\")];\n"];
+        [m5 appendFormat:@"        tensor<fp16, [1, %d, 1, %d]> xh = cast(dtype = to16, x = x)[name = tensor<string, []>(\"cin\")];\n", C5*2, SP];
+        [m5 appendFormat:@"        tensor<int32, [4]> b0 = const()[name = tensor<string, []>(\"b0\"), val = tensor<int32, [4]>([0,0,0,0])];\n"];
+        [m5 appendFormat:@"        tensor<int32, [4]> s0 = const()[name = tensor<string, []>(\"s0\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", C5, SP];
+        [m5 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> data = slice_by_size(x=xh,begin=b0,size=s0)[name = tensor<string, []>(\"data\")];\n", C5, SP];
+        [m5 appendFormat:@"        tensor<int32, [4]> b1 = const()[name = tensor<string, []>(\"b1\"), val = tensor<int32, [4]>([0,%d,0,0])];\n", C5];
+        [m5 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> wt = slice_by_size(x=xh,begin=b1,size=s0)[name = tensor<string, []>(\"wt\")];\n", C5, SP];
+        [m5 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> yh = mul(x=data,y=wt)[name = tensor<string, []>(\"mul\")];\n", C5, SP];
+        [m5 appendString:@"        tensor<string, []> to32 = const()[name = tensor<string, []>(\"to32\"), val = tensor<string, []>(\"fp32\")];\n"];
+        [m5 appendFormat:@"        tensor<fp32, [1,%d,1,%d]> y = cast(dtype = to32, x = yh)[name = tensor<string, []>(\"cout\")];\n", C5, SP];
         [m5 appendString:@"    } -> (y);\n}\n"];
 
         int io5_in = C5*2*SP*4;
@@ -346,8 +346,8 @@ int main(int argc, char **argv) {
         // Let's pack x[1,1,S6,D6] and W[1,1,D6,D6] into [1,2,S6,D6]
         // Then slice → matmul
         NSMutableString *m6 = [NSMutableString string];
-        [m6 appendString:@"program(1.3)\n"
-            "[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
+        [m6 appendString:@"program(1.0)\n"
+            "[buildInfo = dict<tensor<string, []>, tensor<string, []>>({{\"coremlc-component-MIL\", \"3510.2.1\"}, "
             "{\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, "
             "{\"coremltools-version\", \"9.0\"}})]\n{\n"];
         // Input: [1, D6+D6, 1, S6*D6] — flatten everything, then reshape
@@ -355,42 +355,42 @@ int main(int argc, char **argv) {
         // x_data: [1, D6, 1, S6] and W: [1, D6*D6, 1, 1]
         // Total input channels: D6 + D6*D6
         int total_ch = D6 + D6*D6;
-        [m6 appendFormat:@"    func main<ios18>(tensor<fp32, [1, %d, 1, %d]> x) {\n", total_ch, S6];
-        [m6 appendString:@"        string to16 = const()[name = string(\"to16\"), val = string(\"fp16\")];\n"];
-        [m6 appendFormat:@"        tensor<fp16, [1, %d, 1, %d]> xh = cast(dtype = to16, x = x)[name = string(\"cin\")];\n", total_ch, S6];
+        [m6 appendFormat:@"    func main<ios16>(tensor<fp32, [1, %d, 1, %d]> x) {\n", total_ch, S6];
+        [m6 appendString:@"        tensor<string, []> to16 = const()[name = tensor<string, []>(\"to16\"), val = tensor<string, []>(\"fp16\")];\n"];
+        [m6 appendFormat:@"        tensor<fp16, [1, %d, 1, %d]> xh = cast(dtype = to16, x = x)[name = tensor<string, []>(\"cin\")];\n", total_ch, S6];
         // Slice activations: [1, D6, 1, S6]
-        [m6 appendFormat:@"        tensor<int32, [4]> b0 = const()[name = string(\"b0\"), val = tensor<int32, [4]>([0,0,0,0])];\n"];
-        [m6 appendFormat:@"        tensor<int32, [4]> sa = const()[name = string(\"sa\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", D6, S6];
-        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> act = slice_by_size(x=xh,begin=b0,size=sa)[name=string(\"act\")];\n", D6, S6];
+        [m6 appendFormat:@"        tensor<int32, [4]> b0 = const()[name = tensor<string, []>(\"b0\"), val = tensor<int32, [4]>([0,0,0,0])];\n"];
+        [m6 appendFormat:@"        tensor<int32, [4]> sa = const()[name = tensor<string, []>(\"sa\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", D6, S6];
+        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> act = slice_by_size(x=xh,begin=b0,size=sa)[name = tensor<string, []>(\"act\")];\n", D6, S6];
         // Slice weight: [1, D6*D6, 1, S6] but we only need [D6, D6] → reshape
-        [m6 appendFormat:@"        tensor<int32, [4]> bw = const()[name = string(\"bw\"), val = tensor<int32, [4]>([0,%d,0,0])];\n", D6];
-        [m6 appendFormat:@"        tensor<int32, [4]> sw = const()[name = string(\"sw\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", D6*D6, S6];
-        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> wf = slice_by_size(x=xh,begin=bw,size=sw)[name=string(\"wf\")];\n", D6*D6, S6];
+        [m6 appendFormat:@"        tensor<int32, [4]> bw = const()[name = tensor<string, []>(\"bw\"), val = tensor<int32, [4]>([0,%d,0,0])];\n", D6];
+        [m6 appendFormat:@"        tensor<int32, [4]> sw = const()[name = tensor<string, []>(\"sw\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", D6*D6, S6];
+        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> wf = slice_by_size(x=xh,begin=bw,size=sw)[name = tensor<string, []>(\"wf\")];\n", D6*D6, S6];
         // Reshape weight to [1, D6, D6, S6] for matmul-like operation
         // Actually for conv: weight needs to be [OC, IC, 1, 1] const. Can't use dynamic weight with conv.
         // For matmul: need [1, 1, D6, D6] or similar
         // Let's try: reshape wf to [1, D6, D6, S6], take first slice [:,:,:,0] → no, that's hard
         // Simpler: reshape to [D6, D6] and use matmul
         // But matmul expects specific ranks... let me try:
-        [m6 appendFormat:@"        tensor<int32, [4]> ws = const()[name = string(\"ws\"), val = tensor<int32, [4]>([1, 1, %d, %d])];\n", D6, D6];
+        [m6 appendFormat:@"        tensor<int32, [4]> ws = const()[name = tensor<string, []>(\"ws\"), val = tensor<int32, [4]>([1, 1, %d, %d])];\n", D6, D6];
         // Only take first column of wf to get [1, D6*D6, 1, 1]
-        [m6 appendFormat:@"        tensor<int32, [4]> sw1 = const()[name = string(\"sw1\"), val = tensor<int32, [4]>([1,%d,1,1])];\n", D6*D6];
-        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,1]> wf1 = slice_by_size(x=wf,begin=b0,size=sw1)[name=string(\"wf1\")];\n", D6*D6];
-        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> W = reshape(shape=ws,x=wf1)[name=string(\"W\")];\n", D6, D6];
+        [m6 appendFormat:@"        tensor<int32, [4]> sw1 = const()[name = tensor<string, []>(\"sw1\"), val = tensor<int32, [4]>([1,%d,1,1])];\n", D6*D6];
+        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,1]> wf1 = slice_by_size(x=wf,begin=b0,size=sw1)[name = tensor<string, []>(\"wf1\")];\n", D6*D6];
+        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> W = reshape(shape=ws,x=wf1)[name = tensor<string, []>(\"W\")];\n", D6, D6];
         // Reshape act to [1, 1, S6, D6] for matmul
-        [m6 appendFormat:@"        tensor<int32, [4]> as2 = const()[name = string(\"as2\"), val = tensor<int32, [4]>([1, 1, %d, %d])];\n", D6, S6];
-        [m6 appendFormat:@"        tensor<int32, [4]> pm = const()[name = string(\"pm\"), val = tensor<int32, [4]>([0, 1, 3, 2])];\n"];
-        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> a2 = reshape(shape=as2,x=act)[name=string(\"a2\")];\n", D6, S6];
-        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> a3 = transpose(perm=pm,x=a2)[name=string(\"a3\")];\n", S6, D6];
+        [m6 appendFormat:@"        tensor<int32, [4]> as2 = const()[name = tensor<string, []>(\"as2\"), val = tensor<int32, [4]>([1, 1, %d, %d])];\n", D6, S6];
+        [m6 appendFormat:@"        tensor<int32, [4]> pm = const()[name = tensor<string, []>(\"pm\"), val = tensor<int32, [4]>([0, 1, 3, 2])];\n"];
+        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> a2 = reshape(shape=as2,x=act)[name = tensor<string, []>(\"a2\")];\n", D6, S6];
+        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> a3 = transpose(perm=pm,x=a2)[name = tensor<string, []>(\"a3\")];\n", S6, D6];
         // matmul: [1,1,S6,D6] @ [1,1,D6,D6] → [1,1,S6,D6]
-        [m6 appendString:@"        bool bF = const()[name = string(\"bF\"), val = bool(false)];\n"];
-        [m6 appendFormat:@"        tensor<fp16, [1, 1, %d, %d]> yh = matmul(transpose_x = bF, transpose_y = bF, x = a3, y = W)[name = string(\"mm\")];\n", S6, D6];
+        [m6 appendString:@"        tensor<bool, []> bF = const()[name = tensor<string, []>(\"bF\"), val = tensor<bool, []>(false)];\n"];
+        [m6 appendFormat:@"        tensor<fp16, [1, 1, %d, %d]> yh = matmul(transpose_x = bF, transpose_y = bF, x = a3, y = W)[name = tensor<string, []>(\"mm\")];\n", S6, D6];
         // Reshape back to [1, D6, 1, S6]
-        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> yt = transpose(perm=pm,x=yh)[name=string(\"yt\")];\n", D6, S6];
-        [m6 appendFormat:@"        tensor<int32, [4]> os = const()[name = string(\"os\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", D6, S6];
-        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> yr = reshape(shape=os,x=yt)[name=string(\"yr\")];\n", D6, S6];
-        [m6 appendString:@"        string to32 = const()[name = string(\"to32\"), val = string(\"fp32\")];\n"];
-        [m6 appendFormat:@"        tensor<fp32, [1,%d,1,%d]> y = cast(dtype = to32, x = yr)[name = string(\"cout\")];\n", D6, S6];
+        [m6 appendFormat:@"        tensor<fp16, [1,1,%d,%d]> yt = transpose(perm=pm,x=yh)[name = tensor<string, []>(\"yt\")];\n", D6, S6];
+        [m6 appendFormat:@"        tensor<int32, [4]> os = const()[name = tensor<string, []>(\"os\"), val = tensor<int32, [4]>([1,%d,1,%d])];\n", D6, S6];
+        [m6 appendFormat:@"        tensor<fp16, [1,%d,1,%d]> yr = reshape(shape=os,x=yt)[name = tensor<string, []>(\"yr\")];\n", D6, S6];
+        [m6 appendString:@"        tensor<string, []> to32 = const()[name = tensor<string, []>(\"to32\"), val = tensor<string, []>(\"fp32\")];\n"];
+        [m6 appendFormat:@"        tensor<fp32, [1,%d,1,%d]> y = cast(dtype = to32, x = yr)[name = tensor<string, []>(\"cout\")];\n", D6, S6];
         [m6 appendString:@"    } -> (y);\n}\n"];
 
         int io6_in = total_ch * S6 * 4;

@@ -51,8 +51,8 @@ static NSData *buildWeightBlobFP16(int ch, int depth) {
 // Generate W8A8 INT8 MIL: conv with int8 weights + quantize/dequantize between layers
 static NSString *genMILInt8(int ch, int sp, int depth) {
     NSMutableString *m = [NSMutableString string];
-    [m appendString:@"program(1.3)\n[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, {\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, {\"coremltools-version\", \"9.0\"}})]\n{\n"];
-    [m appendFormat:@"    func main<ios18>(tensor<fp16, [1, %d, %d, %d]> x) {\n", ch, sp, sp];
+    [m appendString:@"program(1.0)\n[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, {\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, {\"coremltools-version\", \"9.0\"}})]\n{\n"];
+    [m appendFormat:@"    func main<ios17>(tensor<fp16, [1, %d, %d, %d]> x) {\n", ch, sp, sp];
     // Conv constants
     [m appendString:@"        string c_pad_type = const()[name = string(\"c_pad_type\"), val = string(\"valid\")];\n"
         @"        tensor<int32, [2]> c_strides = const()[name = string(\"c_strides\"), val = tensor<int32, [2]>([1, 1])];\n"
@@ -101,8 +101,8 @@ static NSString *genMILInt8(int ch, int sp, int depth) {
 // Generate FP16 baseline MIL: pure fp16 conv chain
 static NSString *genMILFP16(int ch, int sp, int depth) {
     NSMutableString *m = [NSMutableString string];
-    [m appendString:@"program(1.3)\n[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, {\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, {\"coremltools-version\", \"9.0\"}})]\n{\n"];
-    [m appendFormat:@"    func main<ios18>(tensor<fp16, [1, %d, %d, %d]> x) {\n", ch, sp, sp];
+    [m appendString:@"program(1.0)\n[buildInfo = dict<string, string>({{\"coremlc-component-MIL\", \"3510.2.1\"}, {\"coremlc-version\", \"3505.4.1\"}, {\"coremltools-component-milinternal\", \"\"}, {\"coremltools-version\", \"9.0\"}})]\n{\n"];
+    [m appendFormat:@"    func main<ios17>(tensor<fp16, [1, %d, %d, %d]> x) {\n", ch, sp, sp];
     [m appendString:@"        string c_pad_type = const()[name = string(\"c_pad_type\"), val = string(\"valid\")];\n"
         @"        tensor<int32, [2]> c_strides = const()[name = string(\"c_strides\"), val = tensor<int32, [2]>([1, 1])];\n"
         @"        tensor<int32, [4]> c_pad = const()[name = string(\"c_pad\"), val = tensor<int32, [4]>([0, 0, 0, 0])];\n"
